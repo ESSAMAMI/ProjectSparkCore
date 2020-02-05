@@ -85,10 +85,10 @@ object Main {
      */
 
     val attNedeed = joinItemsTransaction
-      .select(col("Item_Name"), col("Category"), col("Number"), col("Item_Selling_Price"))
+      .select(col("Item_Name"), col("Number"), col("Item_Selling_Price"))
 
     val itemSum = attNedeed
-      .groupBy(col("Item_Name"), col("Category"))
+      .groupBy(col("Item_Name"))
       .agg(sum("Number").alias("Total_Items"), sum("Item_Selling_Price").alias("Amount"))
       .orderBy(col("Amount").desc)
 
