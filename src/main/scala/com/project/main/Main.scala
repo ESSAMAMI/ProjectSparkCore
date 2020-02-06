@@ -1,9 +1,10 @@
 package com.project.main
 
+import com.sun.javaws.jnl.JavaFXAppDesc
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
-object Main {
+object Main{
 
   def main (args: Array[String]):Unit = {
     //Instancier le spark session
@@ -46,18 +47,19 @@ object Main {
         .select("Client_id", "profit")
       .groupBy("Client_id").sum()
 
-    top.show(5)
+    //top.show(5)
 
     val topClient = top.orderBy(col("sum(profit)").desc)
 
-    topClient.show(5)
-
     val topClients = topClient.join(clients, topClient("Client_id") === clients("id"))
       .withColumn("profits", round(col("sum(profit)") * 100 / 5) * 5 / 100)
-      .select("Name", "First_Name", "profits")
+      .select("Name", "First_Name", "Profits")
 
     topClients.show(5)
 
+    // ================ SAVE DATAFRAME AS CSV FILE ====================
+    val toCsvClients = topClients.coalesce(1).write.option("header","true").option("encoding", "ISO-8859-1").option("delimiter", ";")
+      .option("inferSchema", "true").csv("D:/Cours/4_IABD/SPARK/CSV/topClients.csv")
 
     println("======================== Quels sont les produits qu’ils vendent le plus ? ========================")
 
@@ -72,11 +74,14 @@ object Main {
 
     val bestItems = joinItemsTransaction
       .select(col("Item_Name"), col("Category"), col("Number"))
-      .groupBy("Item_Name", "Category")
-      .sum("Number")
-      .orderBy(col("sum(Number)").desc)
+      .groupBy("Item_Name", "Category").agg(sum(col("Number")).alias("Total"))
+      .orderBy(col("Total").desc)
 
     bestItems.show(5)
+
+    // ================ SAVE DATAFRAME AS CSV FILE ====================
+    val toCsvItems = bestItems.coalesce(1).write.option("header","true").option("encoding", "ISO-8859-1").option("delimiter", ";")
+      .option("inferSchema", "true").csv("D:/Cours/4_IABD/SPARK/CSV/bestItems.csv")
 
     println("======================== Qui rapportent le plus ? ========================")
     /*
@@ -93,5 +98,11 @@ object Main {
       .orderBy(col("Amount").desc)
 
     itemSum.show(5)
+
+    // ================ SAVE DATAFRAME AS CSV FILE ====================
+    val toCsvItem = itemSum.coalesce(1).write.option("header","true").option("encoding", "ISO-8859-1").option("delimiter", ";")
+      .option("inferSchema", "true").csv("D:/Cours/4_IABD/SPARK/CSV/bestSales.csv")
+
+
   }
 }
