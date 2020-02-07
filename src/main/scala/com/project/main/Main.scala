@@ -47,7 +47,7 @@ object Main{
         .select("Client_id", "profit")
       .groupBy("Client_id").sum()
 
-    //top.show(5)
+    top.show(5)
 
     val topClient = top.orderBy(col("sum(profit)").desc)
 
